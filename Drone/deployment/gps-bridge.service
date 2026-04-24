@@ -1,0 +1,16 @@
+[Unit]
+Description=GPS Data Bridge to Flutter
+After=network.target mavsdk-server.service
+Requires=mavsdk-server.service
+
+[Service]
+Type=simple
+User=iot
+WorkingDirectory=/home/iot/Desktop/droneCommands
+ExecStartPre=/bin/sleep 10
+ExecStart=/usr/bin/python3 /home/iot/Desktop/droneCommands/gps_bridge.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
