@@ -1,0 +1,34 @@
+name: video_streaming_panel
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.5.4 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # İhtiyacın olan paketler
+  cupertino_icons: ^1.0.8
+  http: ^1.2.0
+  font_awesome_flutter: ^10.12.0
+  flutter_map: ^8.2.2
+  latlong2: ^0.9.1
+  flutter_vlc_player: ^7.4.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
+  # Asset (fotoğraf) tanımlamaları burada
+  assets:
+    - assets/images/IOTROCOP.jpeg
+    - assets/images/KTVTurkiye.png
+    - assets/icons/returntohome.png
