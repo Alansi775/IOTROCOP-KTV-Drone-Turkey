@@ -1,0 +1,15 @@
+[Unit]
+Description=Drone Remote Control
+After=network.target mavsdk-server.service
+Requires=mavsdk-server.service
+
+[Service]
+Type=simple
+User=iot
+WorkingDirectory=/home/iot/Desktop/droneCommands
+ExecStart=/usr/bin/python3 /home/iot/Desktop/droneCommands/full_control.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
