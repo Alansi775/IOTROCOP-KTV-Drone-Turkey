@@ -408,4 +408,4 @@ For technical support or inquiries, contact the development team.
 
 **Status:** Production Ready ✅  
 **Last Updated:** 2026-04-24  
-**Maintained by:** IOTROCOP TECHNOLOGY - Turkey Branch
+**Maintained by:** IOTROCOP TECHNOLOGY
