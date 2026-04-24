@@ -1,0 +1,28 @@
+
+---
+
+## PX4 Autopilot Integration
+
+This system uses **PX4 Autopilot** firmware running on the **Pixhawk Orange Cube** flight controller.
+
+### Architecture
+NVIDIA Jetson Xavier NX
+↓
+MAVSDK Server (C++ library)
+↓
+MAVLink Protocol
+↓
+Pixhawk Orange Cube
+↓
+PX4 Autopilot Firmware
+
+### Key Points
+
+- **PX4 Version:** Stable release (running on Pixhawk)
+- **Communication:** MAVLink protocol via serial (921600 baud)
+- **Interface:** MAVSDK library for C++/Python integration
+- **No Custom Firmware:** Using official PX4 stable build
+- **Control Mode:** Offboard control via MAVSDK API
+
+The MAVSDK server (`mavsdk-server.service`) acts as a bridge between our Python control scripts and the PX4 firmware, providing a clean gRPC API for flight control commands.
+
