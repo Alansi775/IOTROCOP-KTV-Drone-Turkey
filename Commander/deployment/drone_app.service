@@ -1,0 +1,14 @@
+[Unit]
+Description=Drone Control Flutter Application
+After=network.target
+
+[Service]
+Type=simple
+User=iot
+WorkingDirectory=/home/iot/video_streaming_panel
+ExecStart=/home/iot/start_drone.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
