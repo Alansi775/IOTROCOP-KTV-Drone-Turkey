@@ -341,11 +341,11 @@ GPS_UDP_PORT  = 5658
 
 ### v1.0.0 — 2026-04-24
 
-- ✅ Initial production release
-- ✅ PX4 integration via MAVSDK
-- ✅ Video streaming with auto-reconnect
-- ✅ GPS tracking and mapping
-- ✅ Automatic service deployment
+- Initial production release
+- PX4 integration via MAVSDK
+- Video streaming with auto-reconnect
+- GPS tracking and mapping
+- Automatic service deployment
 
 ---
 
