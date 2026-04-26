@@ -1,4 +1,4 @@
-# 🚁 IOTROCOP KTV Drone System
+# IOTROCOP KTV Drone System
 
 <div align="center">
 
@@ -18,7 +18,7 @@ Optimized for fiber optic communication with low-latency telemetry and high-defi
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [System Overview](#-system-overview)
 - [PX4 Autopilot Integration](#-px4-autopilot-integration)
@@ -34,19 +34,19 @@ Optimized for fiber optic communication with low-latency telemetry and high-defi
 
 ---
 
-## 🏗 System Overview
+## System Overview
 
 This system provides an industrial-grade drone control platform with the following capabilities:
 
-- 📹 **Real-time video processing** — MJPEG streaming via GStreamer + NVENC hardware encoding
-- 🛰 **GPS navigation** — Live GPS tracking with UDP bridge
-- ✈️ **MAVSDK flight control** — gRPC-based offboard control via PX4
-- 📱 **Flutter ground station** — Touch-friendly UI with joystick and telemetry
-- 🔌 **Fiber optic link** — Low-latency, high-bandwidth communication between commander and drone
+-  **Real-time video processing** — MJPEG streaming via GStreamer + NVENC hardware encoding
+-  **GPS navigation** — Live GPS tracking with UDP bridge
+-  **MAVSDK flight control** — gRPC-based offboard control via PX4
+-  **Flutter ground station** — Touch-friendly UI with joystick and telemetry
+-  **Fiber optic link** — Low-latency, high-bandwidth communication between commander and drone
 
 ---
 
-## ✈️ PX4 Autopilot Integration
+##  PX4 Autopilot Integration
 
 This system uses **PX4 Autopilot firmware** running on the **Pixhawk Orange Cube** flight controller.
 
@@ -78,7 +78,7 @@ Pixhawk Orange Cube
 
 ---
 
-## 🌐 Network Topology
+##  Network Topology
 
 ```
 ┌─────────────────────────┐                    ┌──────────────────────────┐
@@ -102,7 +102,7 @@ Pixhawk Orange Cube
 
 ---
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Prerequisites
 
@@ -144,7 +144,7 @@ sudo systemctl start mavsdk-server drone-control gps-bridge camera-stream
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 IOTROCOP-KTV-Drone-Turkey/
@@ -194,7 +194,7 @@ IOTROCOP-KTV-Drone-Turkey/
 
 ---
 
-## ⚙️ System Services
+##  System Services
 
 ### Commander Services
 
@@ -214,7 +214,7 @@ IOTROCOP-KTV-Drone-Turkey/
 
 ---
 
-## 📡 Communication Protocols
+##  Communication Protocols
 
 ### UDP Ports
 
@@ -239,7 +239,7 @@ IOTROCOP-KTV-Drone-Turkey/
 
 ---
 
-## 🧪 Testing & Validation
+##  Testing & Validation
 
 ### Manual Control Test
 
@@ -277,7 +277,7 @@ sudo systemctl status drone_app
 
 ---
 
-## 🔧 Configuration
+##  Configuration
 
 ### Network Settings
 
@@ -298,7 +298,7 @@ GPS_UDP_PORT  = 5658
 
 ---
 
-## 🛡 Safety & Operations
+##  Safety & Operations
 
 ### Pre-Flight Checklist
 
@@ -310,14 +310,14 @@ GPS_UDP_PORT  = 5658
 
 ### Failsafe Mechanisms
 
-- ⏱ **3-second timeout** — auto-disarm on lost connection
-- 🛰 **GPS validation** — position lock required before flight
-- 🔗 **Connection monitoring** — continuous link health checks
-- 🕹 **Manual override** — available at all times
+-  **3-second timeout** — auto-disarm on lost connection
+-  **GPS validation** — position lock required before flight
+-  **Connection monitoring** — continuous link health checks
+-  **Manual override** — available at all times
 
 ---
 
-## 📊 Technical Specifications
+##  Technical Specifications
 
 | Component        | Specification              |
 |-----------------|---------------------------|
@@ -331,13 +331,13 @@ GPS_UDP_PORT  = 5658
 
 ---
 
-## 📄 License
+##  License
 
 **Proprietary** — IOTROCOP TECHNOLOGY & KTV DRONE. All rights reserved.
 
 ---
 
-## 📝 Version History
+##  Version History
 
 ### v1.0.0 — 2026-04-24
 
@@ -351,7 +351,7 @@ GPS_UDP_PORT  = 5658
 
 <div align="center">
 
-**Status: Production Ready ✅**
+**Status: Still Not Ready For Production**
 
 Last Updated: 2026-04-24 · Maintained by **IOTROCOP TECHNOLOGY**
 
