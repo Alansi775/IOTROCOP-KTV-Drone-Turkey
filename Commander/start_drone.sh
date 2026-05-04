@@ -1,18 +1,18 @@
 #!/bin/bash
 
-# 1. Python Köprüsünü başlat (Arka planda)
-echo "Python Bridge başlatılıyor..."
+# 1. Video Bridge
+echo "Starting Video Bridge..."
 cd /home/iot/microservices
 python3 rpi_bridge.py &
 
-# 2. Drone Monitor Network servisini başlat (Arka planda)
-echo "Drone Monitor Network başlatılıyor..."
-python3 drone_monitor_network.py &
+# 2. STM32 Forwarder
+echo "Starting STM32 Forwarder..."
+python3 stm32_forwarder.py &
 
-# 3. Python servislerinin tamamen ayağa kalkması için bekle
+# 3. Wait
 sleep 5
 
-# 4. Flutter Arayüzünü başlat
-echo "Flutter Dashboard başlatılıyor..."
+# 4. Flutter UI
+echo "Starting Flutter Dashboard..."
 cd /home/iot/video_streaming_panel
 sudo flutter-pi build/flutter_assets

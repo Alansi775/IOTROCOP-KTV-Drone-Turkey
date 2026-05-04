@@ -1,0 +1,19 @@
+[Unit]
+Description=Drone MAVLink Control
+After=network.target mavsdk-server.service
+Requires=mavsdk-server.service
+
+[Service]
+Type=simple
+User=iot
+WorkingDirectory=/home/iot/drone/droneCommands
+
+# 🔥 انتظر MAVSDK فعليًا (process ready)
+ExecStartPre=/bin/bash -c 'until pgrep -f mavsdk_server > /dev/null; do sleep 1; done; sleep 5'
+
+ExecStart=/usr/bin/python3 /home/iot/drone/droneCommands/full_control.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
