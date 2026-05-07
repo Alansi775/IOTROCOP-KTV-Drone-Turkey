@@ -45,10 +45,9 @@ def parse_binary_packet(data):
             return None
         
         return {
-            'drone_x': unpacked[1],
-            'drone_y': unpacked[2],
-            'power_y': unpacked[3],
-            'spin_y': unpacked[4],
+            'drone_x_norm': unpacked[1],
+            'drone_y_norm': unpacked[2],
+            'power_y_norm': unpacked[3],
             'switch_states': unpacked[9],
             'timestamp': time.time()
         }
@@ -177,18 +176,15 @@ async def main_loop(drone, sock):
                 
                 # Control loop
                 if is_armed and is_offboard:
-                    drone_x_percent = (packet['drone_x'] / 4000.0) * 100.0
-                    drone_y_percent = (packet['drone_y'] / 4000.0) * 100.0
-                    power_percent = (packet['power_y'] / 4000.0) * 100.0
+                    drone_x_percent = (packet['drone_x_norm'] / 2000.0) * 100.0
+                    drone_y_percent = (packet['drone_y_norm'] / 2000.0) * 100.0
+                    power_percent = (packet['power_y_norm'] / 4000.0) * 100.0
                     
                     roll_normalized = deadzone(normalize(drone_x_percent))
                     pitch_normalized = deadzone(normalize(drone_y_percent))
-                    spin_y_percent = ((packet['spin_y'] - 184) / 4000.0) * 100.0
-                    yaw_normalized = deadzone(normalize(spin_y_percent))
                     
                     roll_rate = roll_normalized * MAX_ROLL_RATE
                     pitch_rate = -pitch_normalized * MAX_PITCH_RATE
-                    yaw_rate = yaw_normalized * 30.0  # Max yaw rate
                     thrust = map_throttle(power_percent)
                     
                     current_time = time.time()
@@ -197,7 +193,7 @@ async def main_loop(drone, sock):
                             AttitudeRate(
                                 roll_deg_s=roll_rate,
                                 pitch_deg_s=pitch_rate,
-                                yaw_deg_s=yaw_rate,
+                                yaw_deg_s=0.0,
                                 thrust_value=thrust
                             )
                         )
@@ -210,7 +206,7 @@ async def main_loop(drone, sock):
                             status = "⚪" if thrust < 0.01 else "🟡" if thrust < 0.3 else "🟠" if thrust < 0.6 else "🔴"
                             
                             print(f"{status} Thr:{power_percent:5.1f}% [{bar}] | "
-                                  f"Pitch:{pitch_rate:+5.1f}°/s Roll:{roll_rate:+5.1f}°/s Yaw:{yaw_rate:+5.1f}°/s")
+                                  f"Pitch:{pitch_rate:+5.1f}°/s Roll:{roll_rate:+5.1f}°/s")
                             
                             last_print_time = current_time
                         

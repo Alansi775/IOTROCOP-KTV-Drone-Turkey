@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'dart:math' as math;
 import '../services/gps_service.dart';
 
 class GpsWidget extends StatelessWidget {
@@ -94,9 +95,14 @@ class GpsWidget extends StatelessWidget {
 }
 
 class GpsMapDialog extends StatefulWidget {
-  final GpsData gpsData;
+  final Stream<GpsData> gpsStream;
+  final GpsData initialGpsData;
 
-  const GpsMapDialog({Key? key, required this.gpsData}) : super(key: key);
+  const GpsMapDialog({
+    Key? key,
+    required this.gpsStream,
+    required this.initialGpsData,
+  }) : super(key: key);
 
   @override
   State<GpsMapDialog> createState() => _GpsMapDialogState();
@@ -104,36 +110,49 @@ class GpsMapDialog extends StatefulWidget {
 
 class _GpsMapDialogState extends State<GpsMapDialog> {
   final MapController _mapController = MapController();
-
-  bool get _hasPosition {
-    final lat = widget.gpsData.latitude;
-    final lon = widget.gpsData.longitude;
-    return (lat.abs() > 0.000001 || lon.abs() > 0.000001);
-  }
-
-  double get _displayLat => _hasPosition ? widget.gpsData.latitude : 41.0082;
-  double get _displayLon => _hasPosition ? widget.gpsData.longitude : 28.9784;
+  late GpsData _currentGpsData;
 
   @override
   void initState() {
     super.initState();
+    _currentGpsData = widget.initialGpsData;
+    
+    // استمع للتحديثات
+    widget.gpsStream.listen((gpsData) {
+      if (mounted) {
+        setState(() {
+          _currentGpsData = gpsData;
+        });
+      }
+    });
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final targetZoom = _hasPosition ? 19.0 : 5.0;
       _mapController.move(LatLng(_displayLat, _displayLon), targetZoom);
     });
   }
 
+  bool get _hasPosition {
+    final lat = _currentGpsData.latitude;
+    final lon = _currentGpsData.longitude;
+    return (lat.abs() > 0.000001 || lon.abs() > 0.000001);
+  }
+
+  double get _displayLat => _hasPosition ? _currentGpsData.latitude : 41.0082;
+  double get _displayLon => _hasPosition ? _currentGpsData.longitude : 28.9784;
+
   void _zoomToPosition() {
     final bool hasPos = _hasPosition;
-    final double targetLat = hasPos ? widget.gpsData.latitude : 41.0082;
-    final double targetLon = hasPos ? widget.gpsData.longitude : 28.9784;
+    final double targetLat = hasPos ? _currentGpsData.latitude : 41.0082;
+    final double targetLon = hasPos ? _currentGpsData.longitude : 28.9784;
     final double targetZoom = hasPos ? 19.0 : 14.0;
     _mapController.move(LatLng(targetLat, targetLon), targetZoom);
   }
 
   @override
   Widget build(BuildContext context) {
-    final gpsData = widget.gpsData;
+    // تصحيح الاتجاه: نطرح 90 درجة عشان يكون الشمال فوق
+    final correctedHeading = (_currentGpsData.heading) * (math.pi / 180.0);
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -144,7 +163,7 @@ class _GpsMapDialogState extends State<GpsMapDialog> {
           color: Colors.black.withOpacity(0.95),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: gpsData.hasFix ? Colors.greenAccent : Colors.redAccent,
+            color: _currentGpsData.hasFix ? Colors.greenAccent : Colors.redAccent,
             width: 2,
           ),
         ),
@@ -169,37 +188,23 @@ class _GpsMapDialogState extends State<GpsMapDialog> {
                       markers: [
                         Marker(
                           point: LatLng(_displayLat, _displayLon),
-                          width: 50,
-                          height: 50,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              FaIcon(
-                                (gpsData.hasFix
-                                    ? FontAwesomeIcons.plane
-                                    : (_hasPosition ? FontAwesomeIcons.plane : FontAwesomeIcons.questionCircle)),
-                                color: gpsData.hasFix
-                                    ? Colors.red
-                                    : (_hasPosition ? Colors.orange : Colors.grey),
-                                size: 30,
-                              ),
-                              if (gpsData.hasFix)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.red,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: const Text(
-                                    'İHA',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 8,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                          width: 80,
+                          height: 80,
+                          alignment: Alignment.center,
+                          child: Transform.rotate(
+                            angle: correctedHeading,
+                            alignment: Alignment.center,
+                            child: Icon(
+                              Icons.navigation,
+                              color: _currentGpsData.hasFix ? Colors.red : Colors.grey,
+                              size: 40,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black.withOpacity(0.5),
+                                  blurRadius: 4,
                                 ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ],
@@ -229,30 +234,34 @@ class _GpsMapDialogState extends State<GpsMapDialog> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              gpsData.hasFix ? 'Drone GPS Konumu' : 'GPS Sinyali Yok',
+                              _currentGpsData.hasFix ? 'Drone GPS Konumu' : 'GPS Sinyali Yok',
                               style: TextStyle(
-                                color: gpsData.hasFix ? Colors.greenAccent : Colors.redAccent,
+                                color: _currentGpsData.hasFix ? Colors.greenAccent : Colors.redAccent,
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             const SizedBox(height: 6),
-                            if (gpsData.hasFix) ...[
+                            if (_currentGpsData.hasFix) ...[
                               Text(
-                                'Enlem: ${gpsData.latitude.toStringAsFixed(6)}°',
+                                'Enlem: ${_currentGpsData.latitude.toStringAsFixed(6)}°',
                                 style: const TextStyle(color: Colors.white70, fontSize: 11),
                               ),
                               Text(
-                                'Boylam: ${gpsData.longitude.toStringAsFixed(6)}°',
+                                'Boylam: ${_currentGpsData.longitude.toStringAsFixed(6)}°',
                                 style: const TextStyle(color: Colors.white70, fontSize: 11),
                               ),
                               Text(
-                                'Yükseklik: ${gpsData.altitude.toStringAsFixed(1)}m',
+                                'Yükseklik: ${_currentGpsData.altitude.toStringAsFixed(1)}m',
                                 style: const TextStyle(color: Colors.white70, fontSize: 11),
+                              ),
+                              Text(
+                                'Yön: ${_currentGpsData.heading.toStringAsFixed(1)}°',
+                                style: const TextStyle(color: Colors.greenAccent, fontSize: 11, fontWeight: FontWeight.bold),
                               ),
                             ] else ...[
                               Text(
-                                'Uydu sayısı: ${gpsData.satellites}',
+                                'Uydu sayısı: ${_currentGpsData.satellites}',
                                 style: const TextStyle(color: Colors.white70, fontSize: 11),
                               ),
                             ],

@@ -32,14 +32,11 @@ class GpsService {
       String jsonString = utf8.decode(data);
       Map<String, dynamic> packet = jsonDecode(jsonString);
 
-      // Support both formats
       Map<String, dynamic> gpsData;
       
       if (packet.containsKey('type') && packet['type'] == 'gps_update') {
-        // Old format
         gpsData = packet['data'];
       } else {
-        // New format (direct from Nvidia)
         gpsData = packet;
       }
       
@@ -49,9 +46,10 @@ class GpsService {
         altitude: (gpsData['altitude'] as num).toDouble(),
         satellites: gpsData['satellites'] as int,
         hasFix: gpsData['has_fix'] as bool,
+        heading: (gpsData['heading'] as num?)?.toDouble() ?? 0.0,
       ));
       
-      print("📍 GPS: ${gpsData['latitude']}, ${gpsData['longitude']} | Sats: ${gpsData['satellites']}");
+      print("📍 GPS: ${gpsData['latitude']}, ${gpsData['longitude']} | Sats: ${gpsData['satellites']} | Heading: ${gpsData['heading'] ?? 0}°");
     } catch (e) {
       print("⚠️ GPS packet parse error: $e");
     }
@@ -69,6 +67,7 @@ class GpsData {
   final double altitude;
   final int satellites;
   final bool hasFix;
+  final double heading;
 
   GpsData({
     required this.latitude,
@@ -76,5 +75,6 @@ class GpsData {
     required this.altitude,
     required this.satellites,
     required this.hasFix,
+    this.heading = 0.0,
   });
 }

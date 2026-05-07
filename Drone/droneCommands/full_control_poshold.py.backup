@@ -1,0 +1,143 @@
+#!/usr/bin/env python3
+import asyncio
+import struct
+import socket
+from mavsdk import System
+from mavsdk.offboard import OffboardError, PositionNedYaw
+
+UDP_PORT = 5656
+MAVSDK_PORT = 50051
+
+print("\n" + "="*70)
+print("🚁 DRONE CONTROL - POSITION HOLD MODE")
+print("="*70)
+
+udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+udp_sock.bind(("0.0.0.0", UDP_PORT))
+udp_sock.settimeout(0.01)
+print(f"📡 UDP: Port {UDP_PORT}")
+
+drone = System(mavsdk_server_address="localhost", port=MAVSDK_PORT)
+
+async def main():
+    print("📡 Connecting...")
+    await drone.connect(system_address="serial:///dev/ttyACM0:921600")
+    
+    print("⏳ Waiting for drone...")
+    async for state in drone.core.connection_state():
+        if state.is_connected:
+            print("✅ Connected!")
+            break
+    
+    # Get home position
+    async for pos in drone.telemetry.position():
+        home_lat = pos.latitude_deg
+        home_lon = pos.longitude_deg
+        home_alt = pos.absolute_altitude_m
+        print(f"🏠 Home: {home_lat:.6f}, {home_lon:.6f}, {home_alt:.1f}m")
+        break
+    
+    print("\n" + "="*70)
+    print("🎮 READY - ARM switch to start")
+    print("="*70)
+    
+    armed = False
+    offboard_active = False
+    
+    # Position variables (NED: North-East-Down)
+    north = 0.0
+    east = 0.0
+    down = 0.0
+    yaw = 0.0
+    
+    while True:
+        try:
+            data, _ = udp_sock.recvfrom(1024)
+            if len(data) == 19 and data[0] == 0xAA and data[18] == 0x55:
+                u = struct.unpack("<BhhhhhhBBHBB", data)
+                
+                throttle_raw = u[3]
+                pitch_raw = u[2]
+                roll_raw = u[1]
+                yaw_raw = u[4]
+                switches = u[9]
+                
+                # Normalize (-1 to +1)
+                throttle = ((throttle_raw - 2000) / 2000.0)
+                pitch = ((pitch_raw - 2000) / 2000.0)
+                roll = ((roll_raw - 2000) / 2000.0)
+                yaw_rate = ((yaw_raw - 2000) / 2000.0)
+                
+                # ARM switch (bit 12)
+                arm_switch = bool(switches & (1 << 12))
+                
+                # ARM
+                if arm_switch and not armed:
+                    print("\n🚀 ARM")
+                    await drone.action.arm()
+                    armed = True
+                    print("✅ ARMED!")
+                
+                # Start OFFBOARD - Position Hold
+                if armed and not offboard_active:
+                    print("🎮 Starting POSITION HOLD...")
+                    
+                    # Start at current position (0,0,0 = hover in place)
+                    await drone.offboard.set_position_ned(
+                        PositionNedYaw(0.0, 0.0, 0.0, 0.0)
+                    )
+                    await drone.offboard.start()
+                    offboard_active = True
+                    print("✅ POSITION HOLD active!")
+                    print("\n📊 Controls:\n")
+                
+                # Send position commands
+                if offboard_active:
+                    # Scale inputs (m/s equivalent)
+                    # Throttle: -2 to +2 m/s vertical
+                    # Pitch/Roll: -2 to +2 m/s horizontal
+                    # Yaw: -30 to +30 deg/s rotation
+                    
+                    down += -throttle * 0.5  # Up/Down
+                    north += pitch * 0.5     # Forward/Back
+                    east += roll * 0.5       # Right/Left
+                    yaw += yaw_rate * 10     # Rotation
+                    
+                    # Limits
+                    down = max(-10, min(0, down))  # -10m to 0m
+                    north = max(-20, min(20, north))
+                    east = max(-20, min(20, east))
+                    yaw = yaw % 360
+                    
+                    await drone.offboard.set_position_ned(
+                        PositionNedYaw(north, east, down, yaw)
+                    )
+                    
+                    print(f"\r🟢 Alt:{-down:+5.1f}m N:{north:+5.1f}m E:{east:+5.1f}m Yaw:{yaw:5.1f}°", end="", flush=True)
+                
+                # DISARM
+                if not arm_switch and armed:
+                    print("\n\n🛑 DISARM")
+                    if offboard_active:
+                        await drone.offboard.stop()
+                        offboard_active = False
+                    await drone.action.disarm()
+                    armed = False
+                    print("✅ Disarmed\n")
+                    
+                    # Reset position
+                    north = east = down = yaw = 0.0
+        
+        except socket.timeout:
+            await asyncio.sleep(0.01)
+        except KeyboardInterrupt:
+            print("\n\n🛑 Shutting down...")
+            if offboard_active:
+                await drone.offboard.stop()
+            if armed:
+                await drone.action.disarm()
+            break
+
+# Python 3.6 compatible
+loop = asyncio.get_event_loop()
+loop.run_until_complete(main())
